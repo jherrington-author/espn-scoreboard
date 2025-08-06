@@ -22,7 +22,8 @@ async function loadScores() {
   const base =
     `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${leagueId}?view=mMatchupScore&scoringPeriodId=${week}`;
   const url =
-    `https://cors.isomorphic-git.org/${base}`;
+    `const url =
+  `https://espn-proxy.joshua-herrington.workers.dev/?url=${encodeURIComponent(api)}`;
 
   try {
     const res  = await fetch(url);
