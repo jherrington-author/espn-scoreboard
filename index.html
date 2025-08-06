@@ -1,0 +1,56 @@
+<div id="espn-scoreboard" style="font-family: Arial, sans-serif;"></div>
+
+<script>
+// =======  USER SETTINGS  =======
+const leagueId = 669421075;   // <-- keep
+const season   = 2025;        // <-- update next year
+const autoWeek = true;        // true = compute week from today
+const manualWeek = 1;         // used if autoWeek = false
+const refreshSeconds = 120;   // auto-refresh interval
+// ===============================
+
+const kickoff2025 = new Date('2025-09-04T00:00:00Z'); // first NFL game UTC
+
+function currentWeek() {
+  if (!autoWeek) return manualWeek;
+  const diffDays = Math.floor((Date.now() - kickoff2025) / 86400000);
+  return Math.max(1, Math.min(18, Math.ceil((diffDays + 1) / 7)));
+}
+
+async function loadScores() {
+  const week = currentWeek();
+  const base =
+    `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${leagueId}?view=mMatchupScore&scoringPeriodId=${week}`;
+  const url =
+    `https://cors.isomorphic-git.org/${base}`;
+
+  try {
+    const res  = await fetch(url);
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+
+    // Build the HTML
+    let html = `<h3 style="text-align:center">Week ${week} Match-ups</h3>`;
+    data.schedule.forEach(m => {
+      const h = m.home;
+      const a = m.away;
+      html += `
+        <div style="display:flex;justify-content:space-between;padding:6px 4px;border-bottom:1px solid #ddd;">
+          <span>${h.teamAbbrev}<strong>&nbsp;${h.totalPoints}</strong></span>
+          <span>${a.teamAbbrev}<strong>&nbsp;${a.totalPoints}</strong></span>
+        </div>`;
+    });
+
+    document.getElementById('espn-scoreboard').innerHTML = html;
+  } catch (err) {
+    document.getElementById('espn-scoreboard').textContent =
+      'Scoreboard unavailable – try again later.';
+    console.error('ESPN API error:', err);
+  }
+}
+
+// first load
+loadScores();
+// auto-refresh
+setInterval(loadScores, refreshSeconds * 1000);
+</script>
